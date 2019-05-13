@@ -13,8 +13,9 @@ Run unit tests
 python3 -m nose
 ```
 
-[Mocks Aren't Stubs](https://www.martinfowler.com/articles/mocksArentStubs.html)
-[Boto Stubber](https://botocore.amazonaws.com/v1/documentation/api/latest/reference/stubber.html)
-[Python patch.object](https://docs.python.org/3/library/unittest.mock.html#patch-object)
-[Nose Testing Framework](http://pythontesting.net/framework/nose/nose-introduction/)
+References:
+- [Mocks Aren't Stubs](https://www.martinfowler.com/articles/mocksArentStubs.html)
+- [Boto Stubber](https://botocore.amazonaws.com/v1/documentation/api/latest/reference/stubber.html)
+- [Python patch.object](https://docs.python.org/3/library/unittest.mock.html#patch-object)
+- [Nose Testing Framework](http://pythontesting.net/framework/nose/nose-introduction/)
 
