@@ -1,16 +1,21 @@
+#!/usr/bin/env python3
+
 import json
 from s3_client import s3_client
 
 client = s3_client()
 
 # Sample s3 call
-# result = client.list('cloudformation-templates-us-west-2')
+result1 = client.list('cloudformation-templates-us-west-2')
+print(json.dumps(result1, default=str,indent=2))
+print('---------   ---------   ---------   ---------   ---------   ---------')
 
 # Sample s3 with prefixes
-# result = client.list('1000genomes', 'data/')
+result2 = client.list('1000genomes', 'data/')
+print(json.dumps(result2, default=str,indent=2))
+print('---------   ---------   ---------   ---------   ---------   ---------')
 
-result = client.complex('cloudformation-templates-us-west-2')
-
-print(json.dumps(result, default=str,indent=2))
+result3 = client.complex('cloudformation-templates-us-west-2')
+print(json.dumps(result3, default=str,indent=2))
 
 

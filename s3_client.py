@@ -13,10 +13,11 @@ class s3_client:
         #s3 = self.s3 - not needed with the patched approch
         s3 = boto3.client('s3')
 
-        return s3.list_objects(Bucket=bucket)
+        return s3.list_objects(Bucket=bucket, Prefix=prefix)
 
     def complex(self, bucket, prefix=''):
-        s3_list = boto3.client('s3').list_objects(Bucket=bucket)
+        #s3_list = boto3.client('s3').list_objects(Bucket=bucket, Prefix=prefix)
+        s3_list = self.list(bucket, prefix)
 
         user = boto3.client('sts').get_caller_identity()
 
