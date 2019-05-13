@@ -29,27 +29,56 @@ class s3_client_list(unittest.TestCase):
     @patch.object(boto3, "client")
     # def s3_client_complex_test(self, mock_s3_client, mock_sts_client):
     def s3_client_complex_test(self, mock_s3_client):
-        # try this one.
-        # from moto import mock_s3
-        #
-        # @mock_s3
-        # def test_my_model_save():
-        #     pass
-
         stubbed_s3_client = botocore.session.get_session().create_client('s3')
         stubber_s3 = Stubber(stubbed_s3_client)
         stubber_s3.add_response('list_objects', stub_s3_list_response)
         stubber_s3.activate()
-
 
         stubbed_sts_client = botocore.session.get_session().create_client('sts')
         stubber_sts = Stubber(stubbed_sts_client)
         stubber_sts.add_response('get_caller_identity', stub_current_user_response)
         stubber_sts.activate()
 
-        # using the side_effect allows me to use multiple clients, here its s3 and sts
+        # Use a list of responses which may be simpler, but a little more brittle when the code changes
         # to allows multiple return values for multiple API's
         mock_s3_client.side_effect = [stubbed_s3_client, stubbed_sts_client]
+
+        client = s3_client()
+
+        actual = client.complex('cloudformation-templates-us-west-2', '')
+        print('actual:', actual)
+
+        actual_list_results_length = len(actual['list'].get('Contents'))
+        self.assertEqual(actual_list_results_length, 2)
+
+        actual_sts_user_id = actual['user']['UserId']
+        self.assertEqual(actual_sts_user_id, expected_sts_user_id)
+
+    @patch.object(boto3, "client")
+    # def s3_client_complex_test(self, mock_s3_client, mock_sts_client):
+    def s3_client_complex_v2_test(self, mock_s3_client):
+        # using the side_effect allows me to use multiple clients, here its s3 and sts
+        # to allows multiple return values for multiple API's
+        def side_effect(arg):
+            stubbed_client = botocore.session.get_session().create_client(arg)
+
+            print('side_effect:', arg)
+
+            stubber = Stubber(stubbed_client)
+            if arg == 's3':
+                print('side_effect:list_objects')
+                stubber.add_response('list_objects', stub_s3_list_response)
+
+            if arg == 'sts':
+                print('side_effect:get_caller_identity')
+                stubber.add_response('get_caller_identity', stub_current_user_response)
+
+            stubber.activate()
+            return stubbed_client
+
+        # use a side effect function that which may be a little more complex but it is a little less brittle
+        #  when code changes.
+        mock_s3_client.side_effect = side_effect
 
         client = s3_client()
 

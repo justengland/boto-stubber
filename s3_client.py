@@ -18,7 +18,6 @@ class s3_client:
     def complex(self, bucket, prefix=''):
         #s3_list = boto3.client('s3').list_objects(Bucket=bucket, Prefix=prefix)
         s3_list = self.list(bucket, prefix)
-
         user = boto3.client('sts').get_caller_identity()
 
         return {
