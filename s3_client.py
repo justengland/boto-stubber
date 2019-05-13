@@ -1,6 +1,5 @@
 import boto3
 
-
 class s3_client:
     """A simple s3 client, patch in a stubbed s3 object for testing"""
 
@@ -15,3 +14,14 @@ class s3_client:
         s3 = boto3.client('s3')
 
         return s3.list_objects(Bucket=bucket)
+
+    def complex(self, bucket, prefix=''):
+        s3_list = boto3.client('s3').list_objects(Bucket=bucket)
+
+        user = boto3.client('sts').get_caller_identity()
+
+        return {
+            'list': s3_list,
+            'user': user
+        }
+

@@ -8,13 +8,11 @@ from unittest.mock import patch, Mock, MagicMock
 class s3_client_list(unittest.TestCase):
     @patch.object(boto3, "client")
     def s3_client_list_test(self, mock_client):
-        stubbed_client = botocore.session.get_session().create_client('s3')
         # stubbed_client = boto3.client('s3') --- seems like this should work but does not
-
+        stubbed_client = botocore.session.get_session().create_client('s3')
         stubber = Stubber(stubbed_client)
-        stubber.add_response('list_objects', stub_response)
+        stubber.add_response('list_objects', stub_s3_list_response)
         stubber.activate()
-
         mock_client.return_value = stubbed_client
 
         client = s3_client()
@@ -25,8 +23,47 @@ class s3_client_list(unittest.TestCase):
         actual_results_length = len(actual.get('Contents'))
         self.assertEqual(actual_results_length, 2)
 
+    #@patch.object(boto3, "client")
+    # @patch.object(boto3, "client")
 
-stub_response = {
+    @patch.object(boto3, "client")
+    # def s3_client_complex_test(self, mock_s3_client, mock_sts_client):
+    def s3_client_complex_test(self, mock_s3_client):
+        # try this one.
+        # from moto import mock_s3
+        #
+        # @mock_s3
+        # def test_my_model_save():
+        #     pass
+
+        stubbed_s3_client = botocore.session.get_session().create_client('s3')
+        stubber_s3 = Stubber(stubbed_s3_client)
+        stubber_s3.add_response('list_objects', stub_s3_list_response)
+        stubber_s3.activate()
+
+
+        stubbed_sts_client = botocore.session.get_session().create_client('sts')
+        stubber_sts = Stubber(stubbed_sts_client)
+        stubber_sts.add_response('get_caller_identity', stub_current_user_response)
+        stubber_sts.activate()
+
+        # using the side_effect allows me to use multiple clients, here its s3 and sts
+        # to allows multiple return values for multiple API's
+        mock_s3_client.side_effect = [stubbed_s3_client, stubbed_sts_client]
+
+        client = s3_client()
+
+        actual = client.complex('cloudformation-templates-us-west-2', '')
+        print('actual:', actual)
+
+        actual_list_results_length = len(actual['list'].get('Contents'))
+        self.assertEqual(actual_list_results_length, 2)
+
+        actual_sts_user_id = actual['user']['UserId']
+        self.assertEqual(actual_sts_user_id, expected_sts_user_id)
+
+
+stub_s3_list_response = {
   "ResponseMetadata": {
     "RequestId": "1E389A07F82251BA",
     "HostId": "xkGfpPspp48M/aA0vJ3uR+Fy7UFm80D77w+pboIKFVf5ZU+odrgKyex1abwNDuUF2ActYdWDjLA=",
@@ -63,4 +100,22 @@ stub_response = {
   "Prefix": "",
   "MaxKeys": 1000,
   "EncodingType": "url"
+}
+
+expected_sts_user_id = "123123:Justin.England@foo.bar"
+stub_current_user_response = {
+    "UserId": expected_sts_user_id,
+    "Account": "123123",
+    "Arn": "arn:aws:sts::123123:assumed-role/queen-bee/Justin.England@foo.bar",
+    "ResponseMetadata": {
+        "RequestId": "5297cc40-736d-11e9-b28e-8d87d836bff0",
+        "HTTPStatusCode": 200,
+        "HTTPHeaders": {
+            "x-amzn-requestid": "5297cc40-736d-11e9-b28e-8d87d836bff0",
+            "content-type": "text/xml",
+            "content-length": "469",
+            "date": "Fri, 10 May 2019 21:48:18 GMT"
+        },
+        "RetryAttempts": 0
+    }
 }
